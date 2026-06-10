@@ -1,0 +1,70 @@
+# YouConnext - Docker Compose
+# Backend + MySQL Database
+
+version: "3.8"
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: youconnext-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-youconnext_root_2024}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-youconnext_db}
+      MYSQL_USER: ${MYSQL_USER:-youconnext}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-youconnext_pass_2024}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - youconnext-network
+
+  # Backend Node.js (deshabilitado: ejecutar en local)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: youconnext-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: ${DATABASE_URL}
+      BASE_URL: ${BASE_URL:-http://localhost:3000}
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - youconnext-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  youconnext-network:
+    driver: bridge

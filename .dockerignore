@@ -1,0 +1,49 @@
+# YouConnext - Docker Ignore
+# Archivos y carpetas a excluir del build
+
+# Dependencias de node_modules (se instalan en el contenedor)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Archivos de desarrollo
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Documentación
+README.md
+*.md
+docs/
+test/
+tests/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Cache
+.cache/
+__pycache__/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.bak
+*.tmp
+temp/

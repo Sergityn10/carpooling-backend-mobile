@@ -1,0 +1,124 @@
+// YouConnext - Prisma Schema (MySQL)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuario - Conductores y pasajeros
+model Usuario {
+  id              String   @id // ID único (UUID)
+  dni             String   @unique // DNI del usuario
+  nombre          String
+  apellidos       String?
+  email           String?
+  telefono        String?
+  fotoPerfil      String?  // URL de la foto de perfil
+  fechaNacimiento DateTime?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  viajesComoConductor Viaje[]        @relation("Conductor")
+  viajesComoPasajero  ViajePasajero[]
+  ubicaciones        UbicacionTrayecto[]
+
+  @@map("usuarios")
+}
+
+// Modelo de Viaje - Trayecto principal
+model Viaje {
+  id              String   @id // ID único del viaje
+  conductorId     String   @map("conductor_id")
+  matricula       String   @map("matricula")
+  modeloVehiculo  String?  @map("modelo_vehiculo")
+  colorVehiculo   String?  @map("color_vehiculo")
+  
+  // Punto inicial
+  puntoInicialLat Float   @map("punto_inicial_lat")
+  puntoInicialLng Float   @map("punto_inicial_lng")
+  puntoInicialDireccion String? @map("punto_inicial_direccion")
+  puntoInicialNombre    String? @map("punto_inicial_nombre")
+
+  // Punto final
+  puntoFinalLat Float   @map("punto_final_lat")
+  puntoFinalLng Float   @map("punto_final_lng")
+  puntoFinalDireccion String? @map("punto_final_direccion")
+  puntoFinalNombre    String? @map("punto_final_nombre")
+
+  // Distancia y duración
+  distanciaKm     Float?   @map("distancia_km")
+  duracionMinutos Int?     @map("duracion_minutos")
+
+  // Estado del viaje
+  estado           String   @default("pendiente") @map("estado")
+  
+  // QR para unirse al viaje
+  codigoQR         String   @unique @map("codigo_qr")
+  
+  // Timestamps
+  fechaInicio      DateTime? @map("fecha_inicio")
+  fechaFin         DateTime? @map("fecha_fin")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  conductor        Usuario            @relation("Conductor", fields: [conductorId], references: [id])
+  pasajeros        ViajePasajero[]
+  ubicaciones      UbicacionTrayecto[]
+
+  @@index([conductorId])
+  @@index([estado])
+  @@index([codigoQR])
+  @@map("viajes")
+}
+
+// Modelo de ViajePasajero - Relación many-to-many entre Viaje y Usuario (pasajeros)
+model ViajePasajero {
+  id          String   @id
+  viajeId     String   @map("viaje_id")
+  usuarioId   String   @map("usuario_id")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+  pickedUp    Boolean  @default(false) @map("picked_up")
+  droppedOff  Boolean  @default(false) @map("dropped_off")
+
+  // Relaciones
+  viaje   Viaje   @relation(fields: [viajeId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([viajeId, usuarioId])
+  @@index([viajeId])
+  @@index([usuarioId])
+  @@map("viaje_pasajeros")
+}
+
+// Modelo de UbicacionTrayecto - Seguimiento GPS en tiempo real
+model UbicacionTrayecto {
+  id        String   @id // ID único del registro
+  viajeId   String   @map("viaje_id")
+  usuarioId  String   @map("usuario_id")
+  
+  // Coordenadas GPS
+  latitud   Float
+  longitud  Float
+  precision Float?    @map("precision")
+  
+  // Metadatos
+  velocidad Float?    @map("velocidad")
+  altitud   Float?    @map("altitud")
+  
+  // Timestamp
+  timestamp DateTime @default(now())
+
+  // Relaciones
+  viaje   Viaje   @relation(fields: [viajeId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([viajeId, timestamp])
+  @@index([viajeId])
+  @@index([usuarioId])
+  @@map("ubicaciones_trayecto")
+}
