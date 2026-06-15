@@ -11,7 +11,7 @@ pnpm-debug.log*
 
 # Env files (secrets)
 .env
-.env.*
+
 !.env.example
 !.env.template
 
