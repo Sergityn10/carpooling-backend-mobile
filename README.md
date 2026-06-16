@@ -33,7 +33,34 @@ curl http://localhost:3000/api/health
 docker-compose ps
 ```
 
-### 3. Detener
+### 3. Acceder al servidor
+```bash
+ssh tu_usuario@tu_ip
+ssh sergityn@192.168.0.47
+```
+### 4. Pasos en el servidor
+1. Actualiza la lista de paquetes del sistema:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+2. Descarga e instala Docker automáticamente: Este es el script oficial de Docker que hace todo el trabajo pesado por ti.
+
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
+3. Dale permisos a tu usuario: Para no tener que escribir sudo cada vez que uses Docker, añade tu usuario al grupo de Docker:
+```bash
+sudo usermod -aG docker $USER
+```
+
+4. Aplica los permisos: Para que el cambio anterior surta efecto sin tener que reiniciar, ejecuta:
+
+```bash
+newgrp docker
+```
+### 5. Detener
 
 ```bash
 docker-compose down
@@ -137,50 +164,50 @@ GET    /api/ubicaciones/viaje/:viajeId/distancia - Calcular distancia
 ## 🗄️ Modelo de Datos (MySQL)
 
 ### usuarios
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | VARCHAR(36) | UUID único |
-| dni | VARCHAR(255) | DNI único |
-| nombre | VARCHAR(255) | Nombre |
-| email | VARCHAR(255) | Email |
-| telefono | VARCHAR(255) | Teléfono |
-| created_at | DATETIME | Fecha creación |
-| updated_at | DATETIME | Fecha actualización |
+| Campo      | Tipo         | Descripción         |
+| ---------- | ------------ | ------------------- |
+| id         | VARCHAR(36)  | UUID único          |
+| dni        | VARCHAR(255) | DNI único           |
+| nombre     | VARCHAR(255) | Nombre              |
+| email      | VARCHAR(255) | Email               |
+| telefono   | VARCHAR(255) | Teléfono            |
+| created_at | DATETIME     | Fecha creación      |
+| updated_at | DATETIME     | Fecha actualización |
 
 ### viajes
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | VARCHAR(36) | UUID único |
-| conductor_id | VARCHAR(36) | FK conductor |
-| matricula | VARCHAR(255) | Matrícula vehículo |
-| punto_inicial_lat/lng | DOUBLE | Coordenadas inicio |
-| punto_final_lat/lng | DOUBLE | Coordenadas final |
-| distancia_km | DOUBLE | Distancia recorrida |
-| codigo_qr | VARCHAR(255) | Código único QR |
-| estado | VARCHAR(255) | pending/activo/completado/cancelado |
+| Campo                 | Tipo         | Descripción                         |
+| --------------------- | ------------ | ----------------------------------- |
+| id                    | VARCHAR(36)  | UUID único                          |
+| conductor_id          | VARCHAR(36)  | FK conductor                        |
+| matricula             | VARCHAR(255) | Matrícula vehículo                  |
+| punto_inicial_lat/lng | DOUBLE       | Coordenadas inicio                  |
+| punto_final_lat/lng   | DOUBLE       | Coordenadas final                   |
+| distancia_km          | DOUBLE       | Distancia recorrida                 |
+| codigo_qr             | VARCHAR(255) | Código único QR                     |
+| estado                | VARCHAR(255) | pending/activo/completado/cancelado |
 
 ### viaje_pasajeros
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | VARCHAR(36) | UUID único |
-| viaje_id | VARCHAR(36) | FK viaje |
-| usuario_id | VARCHAR(36) | FK usuario |
-| joined_at | DATETIME | Cuándo se unió |
-| picked_up | BOOLEAN | ¿Fue recogido? |
-| dropped_off | BOOLEAN | ¿Fue dejado? |
+| Campo       | Tipo        | Descripción    |
+| ----------- | ----------- | -------------- |
+| id          | VARCHAR(36) | UUID único     |
+| viaje_id    | VARCHAR(36) | FK viaje       |
+| usuario_id  | VARCHAR(36) | FK usuario     |
+| joined_at   | DATETIME    | Cuándo se unió |
+| picked_up   | BOOLEAN     | ¿Fue recogido? |
+| dropped_off | BOOLEAN     | ¿Fue dejado?   |
 
 ### ubicaciones_trayecto
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | VARCHAR(36) | UUID único |
-| viaje_id | VARCHAR(36) | FK viaje |
-| usuario_id | VARCHAR(36) | FK usuario |
-| latitud | DOUBLE | Latitud GPS |
-| longitud | DOUBLE | Longitud GPS |
-| precision | DOUBLE | Precisión GPS |
-| velocidad | DOUBLE | Velocidad km/h |
-| altitud | DOUBLE | Altitud metros |
-| timestamp | DATETIME | Hora registro |
+| Campo      | Tipo        | Descripción    |
+| ---------- | ----------- | -------------- |
+| id         | VARCHAR(36) | UUID único     |
+| viaje_id   | VARCHAR(36) | FK viaje       |
+| usuario_id | VARCHAR(36) | FK usuario     |
+| latitud    | DOUBLE      | Latitud GPS    |
+| longitud   | DOUBLE      | Longitud GPS   |
+| precision  | DOUBLE      | Precisión GPS  |
+| velocidad  | DOUBLE      | Velocidad km/h |
+| altitud    | DOUBLE      | Altitud metros |
+| timestamp  | DATETIME    | Hora registro  |
 
 ## 🔒 Seguridad
 
