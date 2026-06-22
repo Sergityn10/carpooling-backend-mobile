@@ -18,7 +18,7 @@ async function main() {
     // Sincronizar esquema de base de datos directamente con prisma db push (puesto que no hay archivos de migraciones)
     console.log("🔄 Sincronizando esquema de base de datos...");
     try {
-      execSync("./node_modules/.bin/prisma db push", {
+      execSync("./node_modules/.bin/prisma db push --force-reset", {
         stdio: "pipe",
         encoding: "utf-8",
       });
