@@ -11,10 +11,11 @@ datasource db {
 // Modelo de Usuario - Conductores y pasajeros
 model Usuario {
   id              String   @id // ID único (UUID)
-  dni             String   @unique // DNI del usuario
+  dni             String?   @unique // DNI del usuario
   nombre          String
   apellidos       String?
-  email           String?
+  email           String   @unique // Email obligatorio para login
+  password        String   // Hash de contraseña (bcrypt)
   telefono        String?
   fotoPerfil      String?  // URL de la foto de perfil
   fechaNacimiento DateTime?

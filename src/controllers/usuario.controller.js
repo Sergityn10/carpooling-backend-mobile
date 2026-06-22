@@ -1,88 +1,85 @@
 // YouConnext - Usuario Controller
-const { PrismaClient } = require('@prisma/client');
-const { v4: uuidv4 } = require('uuid');
+const { PrismaClient } = require("@prisma/client");
+const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
+
+function sanitizeUser(user) {
+  if (!user) return null;
+  const { password, ...rest } = user;
+  return rest;
+}
 
 // Crear un nuevo usuario
 exports.crearUsuario = async (req, res) => {
   try {
-    const { dni, nombre, apellidos, email, telefono, fotoPerfil, fechaNacimiento } = req.body;
+    const {
+      dni,
+      nombre,
+      apellidos,
+      email,
+      password,
+      telefono,
+      fotoPerfil,
+      fechaNacimiento,
+    } = req.body;
 
-    // Validar campos requeridos
-    if (!dni || !nombre) {
-      return res.status(400).json({ 
-        error: 'DNI y nombre son campos requeridos' 
+    if (!nombre || !email || !password) {
+      return res.status(400).json({
+        error: "Nombre, email y contraseña son campos requeridos",
       });
     }
 
-    // Verificar si el usuario ya existe
-    const usuarioExistente = await prisma.usuario.findUnique({
-      where: { dni }
-    });
-
-    if (usuarioExistente) {
-      return res.status(409).json({ 
-        error: 'Ya existe un usuario con este DNI',
-        usuario: usuarioExistente
-      });
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ error: "La contraseña debe tener al menos 6 caracteres" });
     }
 
-    // Crear usuario
+    if (dni) {
+      const usuarioExistente = await prisma.usuario.findUnique({
+        where: { dni },
+      });
+
+      if (usuarioExistente) {
+        return res.status(409).json({
+          error: "Ya existe un usuario con este DNI",
+          usuario: sanitizeUser(usuarioExistente),
+        });
+      }
+    }
+
+    const existByEmail = await prisma.usuario.findUnique({ where: { email } });
+    if (existByEmail) {
+      return res
+        .status(409)
+        .json({ error: "Ya existe un usuario con este email" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const usuario = await prisma.usuario.create({
       data: {
         id: uuidv4(),
-        dni,
+        dni: dni || null,
         nombre,
         apellidos,
         email,
+        password: hashedPassword,
         telefono,
         fotoPerfil,
-        fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : null
-      }
+        fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : null,
+      },
     });
 
     res.status(201).json({
-      message: '¡Usuario creado correctamente! 🎉',
-      usuario
+      message: "¡Usuario creado correctamente! 🎉",
+      usuario: sanitizeUser(usuario),
     });
   } catch (error) {
-    console.error('Error al crear usuario:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-};
-
-// Obtener usuario por DNI
-exports.obtenerUsuarioPorDNI = async (req, res) => {
-  try {
-    const { dni } = req.params;
-
-    const usuario = await prisma.usuario.findUnique({
-      where: { dni },
-      include: {
-        viajesComoConductor: {
-          orderBy: { createdAt: 'desc' }
-        },
-        viajesComoPasajero: {
-          include: {
-            viaje: {
-              include: {
-                conductor: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!usuario) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    res.json(usuario);
-  } catch (error) {
-    console.error('Error al obtener usuario:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error("Error al crear usuario:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
@@ -95,28 +92,28 @@ exports.obtenerUsuarioPorId = async (req, res) => {
       where: { id },
       include: {
         viajesComoConductor: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: "desc" },
         },
         viajesComoPasajero: {
           include: {
             viaje: {
               include: {
-                conductor: true
-              }
-            }
-          }
-        }
-      }
+                conductor: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!usuario) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    res.json(usuario);
+    res.json(sanitizeUser(usuario));
   } catch (error) {
-    console.error('Error al obtener usuario:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error("Error al obtener usuario:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
@@ -124,13 +121,13 @@ exports.obtenerUsuarioPorId = async (req, res) => {
 exports.listarUsuarios = async (req, res) => {
   try {
     const usuarios = await prisma.usuario.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
-    res.json(usuarios);
+    res.json(usuarios.map(sanitizeUser));
   } catch (error) {
-    console.error('Error al listar usuarios:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error("Error al listar usuarios:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
@@ -138,7 +135,8 @@ exports.listarUsuarios = async (req, res) => {
 exports.actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellidos, email, telefono, fotoPerfil, fechaNacimiento } = req.body;
+    const { nombre, apellidos, email, telefono, fotoPerfil, fechaNacimiento } =
+      req.body;
 
     const usuario = await prisma.usuario.update({
       where: { id },
@@ -148,19 +146,21 @@ exports.actualizarUsuario = async (req, res) => {
         email,
         telefono,
         fotoPerfil,
-        fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined
-      }
+        fechaNacimiento: fechaNacimiento
+          ? new Date(fechaNacimiento)
+          : undefined,
+      },
     });
 
     res.json({
-      message: '¡Usuario actualizado! ✏️',
-      usuario
+      message: "¡Usuario actualizado! ✏️",
+      usuario: sanitizeUser(usuario),
     });
   } catch (error) {
-    console.error('Error al actualizar usuario:', error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+    console.error("Error al actualizar usuario:", error);
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };

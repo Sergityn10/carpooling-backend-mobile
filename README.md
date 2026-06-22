@@ -49,6 +49,7 @@ sudo apt update && sudo apt upgrade -y
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
+docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJhIjoiMWNjOGRhYzYzYTgyMWI0ODVlYjgxNzlkNWE1MDFjMWMiLCJ0IjoiODdmZDVlNWItYTM4Yy00Y2Y2LWJkYTQtOTMyZTE3MmZkMzFkIiwicyI6Ik1EQmxOVEpsTnpjdE1tRTFaaTAwWm1Oa0xXSXlNMk10WXpNME9ETTJZekJqT1dVMiJ9
 ```
 3. Dale permisos a tu usuario: Para no tener que escribir sudo cada vez que uses Docker, añade tu usuario al grupo de Docker:
 ```bash

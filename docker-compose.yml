@@ -39,6 +39,8 @@ services:
       PORT: ${PORT:-3000}
       DATABASE_URL: ${DATABASE_URL}
       BASE_URL: ${BASE_URL:-http://localhost:3000}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-youconnext_access_secret_2024}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-youconnext_refresh_secret_2024}
     ports:
       - "${PORT:-3000}:3000"
     depends_on:

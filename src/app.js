@@ -1,12 +1,16 @@
 // YouConnext - Express App Configuration
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
 // Importar rutas
-const usuarioRoutes = require('./routes/usuario.routes');
-const viajeRoutes = require('./routes/viaje.routes');
-const ubicacionRoutes = require('./routes/ubicacion.routes');
+const authRoutes = require("./routes/auth.routes");
+const usuarioRoutes = require("./routes/usuario.routes");
+const viajeRoutes = require("./routes/viaje.routes");
+const ubicacionRoutes = require("./routes/ubicacion.routes");
+
+// Middlewares
+const { authRequired } = require("./middleware/auth.middleware");
 
 const app = express();
 
@@ -15,26 +19,29 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas de la API
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/viajes', viajeRoutes);
-app.use('/api/ubicaciones', ubicacionRoutes);
+// Rutas públicas (autenticación)
+app.use("/api/auth", authRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: '🚀 YouConnext API funcionando',
-    timestamp: new Date().toISOString()
+// Health check (público)
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "🚀 YouConnext API funcionando",
+    timestamp: new Date().toISOString(),
   });
 });
 
+// Rutas protegidas (requieren token JWT)
+app.use("/api/usuarios", authRequired, usuarioRoutes);
+app.use("/api/viajes", authRequired, viajeRoutes);
+app.use("/api/ubicaciones", authRequired, ubicacionRoutes);
+
 // Ruta raíz
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
-    name: 'YouConnext API',
-    version: '1.0.0',
-    description: 'Backend para la app de carpooling YouConnext'
+    name: "YouConnext API",
+    version: "1.0.0",
+    description: "Backend para la app de carpooling YouConnext",
   });
 });
 
