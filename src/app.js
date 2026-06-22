@@ -10,7 +10,7 @@ const viajeRoutes = require("./routes/viaje.routes");
 const ubicacionRoutes = require("./routes/ubicacion.routes");
 
 // Middlewares
-const { authRequired, requireAdmin } = require("./middleware/auth.middleware");
+const { authRequired } = require("./middleware/auth.middleware");
 
 const app = express();
 
@@ -32,7 +32,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Rutas protegidas (requieren token JWT)
-app.use("/api/usuarios", authRequired, requireAdmin, usuarioRoutes);
+app.use("/api/usuarios", authRequired, usuarioRoutes);
 app.use("/api/viajes", authRequired, viajeRoutes);
 app.use("/api/ubicaciones", authRequired, ubicacionRoutes);
 

@@ -83,10 +83,17 @@ exports.crearUsuario = async (req, res) => {
   }
 };
 
-// Obtener usuario por ID
+// Obtener usuario por ID (propio usuario o admin)
 exports.obtenerUsuarioPorId = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Solo el propio usuario o un admin pueden ver los datos
+    if (req.user.id !== id && req.user.rol !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "No tienes permisos para ver este usuario" });
+    }
 
     const usuario = await prisma.usuario.findUnique({
       where: { id },
@@ -133,12 +140,19 @@ exports.listarUsuarios = async (req, res) => {
   }
 };
 
-// Actualizar usuario
+// Actualizar usuario (propio usuario o admin)
 exports.actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre, apellidos, email, telefono, fotoPerfil, fechaNacimiento } =
       req.body;
+
+    // Solo el propio usuario o un admin pueden actualizar
+    if (req.user.id !== id && req.user.rol !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "No tienes permisos para actualizar este usuario" });
+    }
 
     const usuario = await prisma.usuario.update({
       where: { id },

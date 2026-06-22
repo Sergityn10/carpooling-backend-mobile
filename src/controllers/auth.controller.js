@@ -14,7 +14,7 @@ const REFRESH_TOKEN_EXPIRES = "30d";
 
 function generateAccessToken(user) {
   return jwt.sign(
-    { id: user.id, email: user.email, rol: user.rol },
+    { id: user.id, email: user.email, rol: user.rol?.nombre || "user" },
     ACCESS_TOKEN_SECRET,
     { expiresIn: ACCESS_TOKEN_EXPIRES },
   );
@@ -22,7 +22,7 @@ function generateAccessToken(user) {
 
 function generateRefreshToken(user) {
   return jwt.sign(
-    { id: user.id, email: user.email, rol: user.rol },
+    { id: user.id, email: user.email, rol: user.rol?.nombre || "user" },
     REFRESH_TOKEN_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRES },
   );
