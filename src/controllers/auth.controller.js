@@ -14,7 +14,7 @@ const REFRESH_TOKEN_EXPIRES = "30d";
 
 function generateAccessToken(user) {
   return jwt.sign(
-    { id: user.id, dni: user.dni, email: user.email },
+    { id: user.id, email: user.email, rol: user.rol },
     ACCESS_TOKEN_SECRET,
     { expiresIn: ACCESS_TOKEN_EXPIRES },
   );
@@ -22,7 +22,7 @@ function generateAccessToken(user) {
 
 function generateRefreshToken(user) {
   return jwt.sign(
-    { id: user.id, dni: user.dni, email: user.email },
+    { id: user.id, email: user.email, rol: user.rol },
     REFRESH_TOKEN_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRES },
   );
@@ -87,7 +87,9 @@ exports.register = async (req, res) => {
         password: hashedPassword,
         telefono: telefono || null,
         fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : null,
+        rolId: 2, // Por defecto: user
       },
+      include: { rol: true },
     });
 
     const accessToken = generateAccessToken(usuario);
@@ -116,7 +118,10 @@ exports.login = async (req, res) => {
         .json({ error: "Email y contraseña son obligatorios" });
     }
 
-    const usuario = await prisma.usuario.findUnique({ where: { email } });
+    const usuario = await prisma.usuario.findUnique({
+      where: { email },
+      include: { rol: true },
+    });
 
     if (!usuario) {
       return res.status(401).json({ error: "Credenciales inválidas" });
@@ -166,6 +171,7 @@ exports.refresh = async (req, res) => {
 
     const usuario = await prisma.usuario.findUnique({
       where: { id: decoded.id },
+      include: { rol: true },
     });
     if (!usuario) {
       return res.status(401).json({ error: "Usuario no encontrado" });
@@ -194,6 +200,7 @@ exports.me = async (req, res) => {
     const usuario = await prisma.usuario.findUnique({
       where: { id: req.user.id },
       include: {
+        rol: true,
         viajesComoConductor: { orderBy: { createdAt: "desc" } },
         viajesComoPasajero: {
           include: { viaje: { include: { conductor: true } } },

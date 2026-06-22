@@ -8,6 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Modelo de Rol - Roles de usuario (admin, user, enterprise)
+model Rol {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique // admin, user, enterprise
+  descripcion String?
+  usuarios    Usuario[]
+}
+
 // Modelo de Usuario - Conductores y pasajeros
 model Usuario {
   id              String   @id // ID único (UUID)
@@ -19,10 +27,12 @@ model Usuario {
   telefono        String?
   fotoPerfil      String?  // URL de la foto de perfil
   fechaNacimiento DateTime?
+  rolId           Int      @default(2) // Por defecto: rol "user" (id=2)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   // Relaciones
+  rol                Rol               @relation(fields: [rolId], references: [id])
   viajesComoConductor Viaje[]        @relation("Conductor")
   viajesComoPasajero  ViajePasajero[]
   ubicaciones        UbicacionTrayecto[]

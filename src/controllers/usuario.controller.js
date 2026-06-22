@@ -91,6 +91,7 @@ exports.obtenerUsuarioPorId = async (req, res) => {
     const usuario = await prisma.usuario.findUnique({
       where: { id },
       include: {
+        rol: true,
         viajesComoConductor: {
           orderBy: { createdAt: "desc" },
         },
@@ -122,6 +123,7 @@ exports.listarUsuarios = async (req, res) => {
   try {
     const usuarios = await prisma.usuario.findMany({
       orderBy: { createdAt: "desc" },
+      include: { rol: true },
     });
 
     res.json(usuarios.map(sanitizeUser));

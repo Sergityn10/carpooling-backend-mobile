@@ -32,6 +32,15 @@ async function main() {
       throw pushError;
     }
 
+    // Ejecutar seed (crear roles y admin inicial)
+    console.log("🌱 Ejecutando seed...");
+    try {
+      execSync("node prisma/seed.js", { stdio: "inherit" });
+      console.log("✅ Seed completado");
+    } catch (seedError) {
+      console.log("⚠️  Seed ya ejecutado o error no crítico");
+    }
+
     // Generar cliente si no existe
     console.log("🔧 Verificando cliente Prisma...");
     try {
