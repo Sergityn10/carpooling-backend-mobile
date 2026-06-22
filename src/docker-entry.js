@@ -18,20 +18,24 @@ async function main() {
     // Sincronizar esquema de base de datos directamente con prisma db push (puesto que no hay archivos de migraciones)
     console.log("🔄 Sincronizando esquema de base de datos...");
     try {
-      execSync("npx prisma db push", { stdio: "inherit" });
+      execSync("./node_modules/.bin/prisma db push", {
+        stdio: "pipe",
+        encoding: "utf-8",
+      });
       console.log("✅ Base de datos sincronizada y tablas creadas");
     } catch (pushError) {
       console.error(
         "❌ Error al sincronizar base de datos con prisma db push:",
-        pushError,
       );
+      console.error("stdout:", pushError.stdout);
+      console.error("stderr:", pushError.stderr);
       throw pushError;
     }
 
     // Generar cliente si no existe
     console.log("🔧 Verificando cliente Prisma...");
     try {
-      execSync("npx prisma generate", { stdio: "inherit" });
+      execSync("./node_modules/.bin/prisma generate", { stdio: "inherit" });
       console.log("✅ Cliente Prisma generado");
     } catch (generateError) {
       console.log("⚠️  Cliente Prisma ya existe");

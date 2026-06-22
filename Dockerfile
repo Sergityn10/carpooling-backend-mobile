@@ -57,6 +57,9 @@ COPY --from=builder /app/prisma ./prisma
 # Cambiar ownership
 RUN chown -R nodejs:nodejs /app
 
+# Asegurar permisos de ejecución para prisma CLI
+RUN chmod +x ./node_modules/.bin/prisma || true
+
 # Cambiar a usuario no root
 USER nodejs
 
